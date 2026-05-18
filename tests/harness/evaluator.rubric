@@ -1,0 +1,152 @@
+# Evaluator Rubric — qcomm-knowledge-query vs spec-rag baseline
+
+Issue protocol: 2026-05-17_volte-call-drop
+Date: fill on eval run
+Evaluator: fill on eval run
+
+---
+
+## Scoring Guide
+
+All criteria are binary (pass=1, fail=0) unless marked with weight.
+Normalize raw score to /10 scale per test as documented in each UT file.
+
+### Output Quality Dimensions (apply to all tests)
+
+| ID | Dimension | Description | Weight |
+|----|-----------|-------------|--------|
+| D1 | Format Usability | Output directly usable without manual extraction | 2 |
+| D2 | RAT Specificity | Results scoped to correct RAT (no cross-RAT leakage) | 2 |
+| D3 | Schema Completeness | All required fields present in output | 3 |
+| D4 | Reference Quality | TS/doc references with section numbers | 2 |
+| D5 | Qualcomm Specificity | Vendor-specific content included where applicable | 1 |
+
+---
+
+## Test Scorecard
+
+### UT-01: log_keywords
+
+| Criterion | Without Skill | With Skill V1 | Delta |
+|-----------|--------------|--------------|-------|
+| SQL WHERE clause present | | | |
+| RAT-specific events only | | | |
+| Structured event_type array | | | |
+| Doc refs with sections | | | |
+| **Raw score** | /8 | /8 | |
+| **Normalized /10** | | | |
+
+Expected: Without=3, With=8, Delta=+5
+
+---
+
+### UT-02: cause_analysis
+
+| Criterion | Without Skill | With Skill V1 | Delta |
+|-----------|--------------|--------------|-------|
+| Cause table structured | | | |
+| Cross-layer mapping present | | | |
+| Qualcomm cause codes | | | |
+| TS ref per cause | | | |
+| **Raw score** | /10 | /10 | |
+| **Normalized /10** | | | |
+
+Expected: Without=4, With=9, Delta=+5
+
+---
+
+### UT-03: cross_layer_chain
+
+| Criterion | Without Skill | With Skill V1 | With Skill V2 | Delta V1 | Delta V2 |
+|-----------|--------------|--------------|--------------|----------|----------|
+| IMS layer covered | | | | | |
+| RRC layer covered | | | | | |
+| MAC/PHY layer covered | | | | | |
+| Events ordered | | | | | |
+| missing_layers field | | | | | |
+| **Raw score** | /10 | /10 | /10 | | |
+| **Normalized /10** | | | | | |
+
+Expected: Without=2, V1=5, V2=9 — V1 FAIL confirms W2 weakness
+
+---
+
+### UT-04: timer_query
+
+| Criterion | Without Skill | With Skill V1 | Delta |
+|-----------|--------------|--------------|-------|
+| Correct RAT spec cited | | | |
+| start_condition structured | | | |
+| stop_condition structured | | | |
+| expiry_action explicit | | | |
+| NV item present | | | |
+| **Raw score** | /10 | /10 | |
+| **Normalized /10** | | | |
+
+Expected: Without=4, With=9, Delta=+5
+
+---
+
+### UT-05: procedure_flow
+
+| Criterion | Without Skill | With Skill V1 | Delta |
+|-----------|--------------|--------------|-------|
+| Drop-specific flow | | | |
+| MO-specific only | | | |
+| Step-numbered | | | |
+| Entity labels | | | |
+| TS ref per step | | | |
+| **Raw score** | /10 | /10 | |
+| **Normalized /10** | | | |
+
+Expected: Without=3, With=9, Delta=+6
+
+---
+
+### UT-06: vendor_deviation
+
+| Criterion | Without Skill | With Skill V1 | Delta |
+|-----------|--------------|--------------|-------|
+| Qualcomm delta identified | | | |
+| Standard behavior stated | | | |
+| CR reference present | | | |
+| NV item present | | | |
+| Actionable guidance | | | |
+| **Raw score** | /10 | /10 | |
+| **Normalized /10** | | | |
+
+Expected: Without=1, With=8, Delta=+7
+
+---
+
+## Aggregate Summary
+
+| Test | Intent | Without /10 | With V1 /10 | Delta | Status |
+|------|--------|------------|------------|-------|--------|
+| UT-01 | log_keywords | | | | |
+| UT-02 | cause_analysis | | | | |
+| UT-03 | cross_layer_chain | | | | |
+| UT-04 | timer_query | | | | |
+| UT-05 | procedure_flow | | | | |
+| UT-06 | vendor_deviation | | | | |
+| **Avg** | | | | | |
+
+**Skill verdict**:
+- Average delta ≥ +4: SKILL STRONGLY ADDS VALUE
+- Average delta +2 to +3: SKILL MODERATELY ADDS VALUE
+- Average delta < +2: SKILL NEEDS REWORK
+
+---
+
+## Regression Policy
+
+Run this full rubric after every change to SKILL.md.
+Any test where "With Skill" score drops by ≥ 2 points vs previous run = regression, block merge.
+
+## V1 Known Weakness Tracking
+
+| Weakness | UT | Expected V1 Score | Action if confirmed |
+|----------|-----|-------------------|---------------------|
+| W2: cross_layer single module | UT-03 | 5/10 (FAIL) | Prioritize V2 fix |
+| W5: no doc_type filter | UT-01, UT-04 | partial degradation | V2 fix |
+| W8: hardcoded corpus | UT-06 | may degrade if vendor docs absent | V2 configurable corpus |

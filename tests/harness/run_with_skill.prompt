@@ -1,0 +1,141 @@
+# Harness Prompt: Run WITH qcomm-knowledge-query Skill
+
+## Purpose
+Execute each unit test using the `qcomm-knowledge-query` skill.
+Compare output against expected schema in each UT file.
+
+## Instructions for LLM evaluator
+
+For each test case below, invoke the skill with the exact JSON input shown.
+Record the actual output. Score against the rubric criteria in `evaluator.rubric`.
+
+---
+
+## UT-01 Invocation
+
+```
+[SKILL: qcomm-knowledge-query]
+{
+  "rat": "LTE",
+  "module": "IMS",
+  "procedure": "VoLTE_call",
+  "intent": "log_keywords",
+  "context": "call drop during driving test S25 Ultra"
+}
+```
+
+**Check**:
+- [ ] Output contains `sql_where` field with SQL IN clause
+- [ ] `event_types` array non-empty
+- [ ] All events are LTE-specific (no NR event names)
+- [ ] `doc_refs` present with section numbers
+
+---
+
+## UT-02 Invocation
+
+```
+[SKILL: qcomm-knowledge-query]
+{
+  "rat": "LTE",
+  "module": "RRC",
+  "procedure": "handover",
+  "intent": "cause_analysis",
+  "context": "VoLTE call drop during mobility, release_cause unknown"
+}
+```
+
+**Check**:
+- [ ] `cause_table` array present
+- [ ] Each entry has: `cause_name`, `trigger`, `layer`, `ts_ref`
+- [ ] At least 2 distinct layers covered (RRC + IMS minimum)
+- [ ] No generic prose — structured only
+
+---
+
+## UT-03 Invocation
+
+```
+[SKILL: qcomm-knowledge-query]
+{
+  "rat": "LTE",
+  "module": "RRC",
+  "procedure": "VoLTE_call_drop",
+  "intent": "cross_layer_chain",
+  "context": "IMS SIP BYE → RRC release → MAC HARQ failure during HO"
+}
+```
+
+**Check**:
+- [ ] `chain` array present with ordered steps
+- [ ] Each step has: `step`, `layer`, `event`, `trigger`
+- [ ] `missing_layers` field present (V1: expected non-empty)
+- [ ] V1 expected score: 5/10 (document V1 weakness W2 confirmed)
+
+---
+
+## UT-04 Invocation
+
+```
+[SKILL: qcomm-knowledge-query]
+{
+  "rat": "LTE",
+  "module": "RRC",
+  "procedure": "RLF_detection",
+  "intent": "timer_query",
+  "context": "T310 timer during HO attempt, driving test weak coverage"
+}
+```
+
+**Check**:
+- [ ] `timers` array present
+- [ ] T310 entry has: `start_condition`, `stop_condition`, `expiry_action`
+- [ ] `ts_ref` cites TS 36.331 (not TS 38.331)
+- [ ] `nv_item` field present
+
+---
+
+## UT-05 Invocation
+
+```
+[SKILL: qcomm-knowledge-query]
+{
+  "rat": "LTE",
+  "module": "IMS",
+  "procedure": "VoLTE_call_drop",
+  "intent": "procedure_flow",
+  "context": "MO VoLTE call drop due to RLF, expected vs observed sequence"
+}
+```
+
+**Check**:
+- [ ] `flow` array with step-numbered entries
+- [ ] Each step has: `step`, `entity`, `message`, `ts_ref`
+- [ ] Flow is drop-specific (starts from RLF, not call setup)
+- [ ] `deviation_check_points` list present
+
+---
+
+## UT-06 Invocation
+
+```
+[SKILL: qcomm-knowledge-query]
+{
+  "rat": "LTE",
+  "module": "IMS",
+  "procedure": "VoLTE_call",
+  "intent": "vendor_deviation",
+  "context": "SIP BYE timing on RLF — Qualcomm vs standard"
+}
+```
+
+**Check**:
+- [ ] `deviations` array present
+- [ ] Each entry has: `standard_behavior`, `qualcomm_behavior`, `cr_reference`, `nv_item`
+- [ ] NV item name follows Qualcomm convention (NV_*_I suffix)
+
+---
+
+## Recording Results
+
+Fill in `evaluator.rubric` → column "With Skill Score" for each UT.

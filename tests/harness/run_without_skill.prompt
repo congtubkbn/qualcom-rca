@@ -1,0 +1,115 @@
+# Harness Prompt: Run WITHOUT Skill (raw spec-rag only)
+
+## Purpose
+Execute each unit test using raw spec-rag queries — no skill wrapper.
+This is the baseline (V0) condition for comparison.
+
+## Instructions for LLM evaluator
+
+For each test case below, invoke spec-rag directly with the free-form query shown.
+Do NOT apply any structured intent or schema constraint.
+Record the actual output. Score against same rubric criteria as with-skill run.
+
+---
+
+## UT-01 Baseline
+
+```
+[SKILL: spec-rag]
+Query: "VoLTE call drop log keywords LTE"
+k: 10
+```
+
+**Check** (same criteria as with-skill UT-01):
+- [ ] Output contains SQL WHERE clause → likely NO
+- [ ] Event types listed as structured array → likely NO
+- [ ] LTE-specific only (no NR leakage) → uncertain
+- [ ] Doc refs with section numbers → unlikely
+
+---
+
+## UT-02 Baseline
+
+```
+[SKILL: spec-rag]
+Query: "VoLTE call drop cause LTE handover failure"
+k: 10
+```
+
+**Check**:
+- [ ] Cause table with name/trigger/layer/ts_ref → likely NO
+- [ ] Cross-layer mapping (IMS ↔ RRC ↔ NAS) → likely NO
+- [ ] Qualcomm cause codes → likely NO
+- [ ] TS reference per cause → partial
+
+---
+
+## UT-03 Baseline
+
+```
+[SKILL: spec-rag]
+Query: "IMS RRC MAC call drop chain LTE handover failure sequence"
+k: 10
+```
+
+**Check**:
+- [ ] Multi-layer coverage (IMS + RRC + MAC) → unlikely
+- [ ] Events ordered with causality → NO
+- [ ] Missing-layer indicator → NO
+
+---
+
+## UT-04 Baseline
+
+```
+[SKILL: spec-rag]
+Query: "T310 timer LTE RLF out of sync detection"
+k: 10
+```
+
+**Check**:
+- [ ] RAT-specific: TS 36.331 cited (not TS 38.331) → 50/50
+- [ ] start_condition structured → NO
+- [ ] stop_condition structured → NO
+- [ ] expiry_action chain → NO
+- [ ] NV item → NO
+
+---
+
+## UT-05 Baseline
+
+```
+[SKILL: spec-rag]
+Query: "VoLTE call drop procedure flow 3GPP LTE IMS"
+k: 10
+```
+
+**Check**:
+- [ ] Drop-specific flow → NO (likely returns setup flow)
+- [ ] MO-specific → NO
+- [ ] Step-numbered entries → NO
+- [ ] Entity labels → NO
+- [ ] TS ref per step → NO
+
+---
+
+## UT-06 Baseline
+
+```
+[SKILL: spec-rag]
+Query: "Qualcomm VoLTE SIP BYE vendor deviation RLF LTE"
+k: 10
+```
+
+**Check**:
+- [ ] Qualcomm-specific delta → NO (corpus = 3GPP specs)
+- [ ] Standard behavior stated → partial
+- [ ] CR reference → NO
+- [ ] NV item → NO
+- [ ] Actionable guidance → NO
+
+---
+
+## Recording Results
+
+Fill in `evaluator.rubric` → column "Without Skill Score" for each UT.
